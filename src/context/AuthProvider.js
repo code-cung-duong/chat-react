@@ -24,7 +24,7 @@ function AuthProvider({ children }) {
                     photoURL,
                     countNotify,
                     status,
-                    last_changed
+                    last_changed,
                 } = user;
 
                 setUser({
@@ -35,7 +35,7 @@ function AuthProvider({ children }) {
                     photoURL,
                     countNotify,
                     status,
-                    last_changed
+                    last_changed,
                 });
                 setIsLoading(false);
                 history.push("/");

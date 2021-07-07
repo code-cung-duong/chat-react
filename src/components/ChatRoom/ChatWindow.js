@@ -30,7 +30,7 @@ import ReactAudioPlayer from 'react-audio-player';
 import styled from 'styled-components';
 import { AppContext } from '../../context/AppProvider';
 import { AuthContext } from '../../context/AuthProvider';
-import firebase from '../../firebase/Config';
+import firebase, { db } from '../../firebase/Config';
 import { addDocuments } from '../../firebase/Service';
 import UseFirestore from '../../hooks/UseFirestore';
 import IMessage from './IMessage ';
@@ -122,13 +122,15 @@ function ChatWindow() {
         setSelectedRoomId,
         setIsInviteMemberVisible,
         setIsAddRoomVisible,
-        setIsShowMembersVisible
+        setIsShowMembersVisible,
+        members
     } = useContext(AppContext);
     const {
         user: {
             uid,
             displayName,
-            photoURL
+            photoURL,
+            countNotify
         }
     } = useContext(AuthContext);
 
@@ -143,14 +145,16 @@ function ChatWindow() {
 
     const messages = UseFirestore('messages', messagesCondition);
 
+
     useEffect(() => {
         setIsLoadingMes(true);
         if (selectedRoomId) {
             inputRef.current.focus();
         }
 
-        return () => { }
+
     }, [selectedRoomId])
+
 
     const userRef = firebase.firestore().doc('/users/' + uid);
 
@@ -166,7 +170,6 @@ function ChatWindow() {
                 userRef?.update(isOfflineForFirestore);
                 return;
             };
-            console.log("update status" + uid);
             if (uid === undefined) {
                 userRef?.update(isOfflineForFirestore);
             } else if (uid !== undefined && tab !== 'hidden') {
@@ -187,7 +190,6 @@ function ChatWindow() {
     })
 
     const abc = useCallback(() => {
-
         if (uid === undefined) {
             userRef?.update(isOfflineForFirestore);
         } else if (document.visibilityState === 'hidden' && tab !== 'hidden' && uid !== undefined) {
@@ -212,6 +214,21 @@ function ChatWindow() {
 
         return () => { }
     }, [messages])
+
+
+    useEffect(() => {
+        const abc = db.collection('notifys').doc(uid).onSnapshot((snap) => {
+            const oldData = snap?.data()?.countNotify;
+            if (selectedRoomId && oldData !== undefined) {
+                db.collection('notifys')?.doc(uid).update({
+                    countNotify: [...Array.from(oldData).filter((u) => u !== selectedRoomId)]
+                })
+                console.log("da xem");
+            }
+            return abc;
+        })
+        return abc;
+    }, [selectedRoomId])
 
     useLayoutEffect(() => {
         if (messageListRef.current) {
@@ -256,6 +273,22 @@ function ChatWindow() {
 
     }
 
+    useEffect(() => {
+        const abc = db.collection('notifys').doc(uid).onSnapshot((snap) => {
+            console.log("tin nhan moi");
+            const oldData = snap?.data()?.countNotify;
+            if (document.visibilityState !== 'visible') {
+                document.getElementsByClassName("audio")[0]?.play();
+            }
+
+            document.title = oldData.length === 0 ? 'Fake Messenger' : "(" + oldData.length + ") Fake Messenger";
+
+            return abc;
+        })
+        return abc;
+    }, [])
+
+
     const loadingListMessage = () => (isLoadingMes === true ? <Loading3QuartersOutlined spin
         style={
             {
@@ -283,9 +316,17 @@ function ChatWindow() {
                 roomId: selectedRoomId
             });
 
-            // Array.from([]).filter((u) => u.uid !== uid).forEach((user) => {
-            //     db.collection('notifys').doc(user.uid).collection(user.uid).doc(selectedRoomId).update({ count: firebase.firestore.FieldValue.increment(1) })
-            // })
+            members?.filter((u) => u.uid !== uid).forEach((user) => {
+                db.collection('notifys').doc(user.id).get().then((doc) => {
+                    db.collection('notifys').doc(user.id).update({
+                        countNotify: [
+                            ...doc.data().countNotify,
+                            selectedRoomId
+                        ],
+                        createAt: firebase.firestore.FieldValue.serverTimestamp()
+                    })
+                });
+            })
 
             form1.setFieldsValue({ message: '' });
             inputRef.current.focus();

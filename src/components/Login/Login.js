@@ -23,10 +23,15 @@ function Login() {
                     uid: user.uid,
                     providerId: additionalUserInfo.providerId,
                     keywords: generateKeywords(user.displayName?.toLowerCase()),
-                    countNotify: 0,
+                    countNotify: [],
                     status: '',
                     last_changed: '',
                 })
+                setDocuments('notifys',{
+                    countNotify: [],
+                    uid: user.uid
+                });
+
             }
         } else {
             alert("Vui lòng cho phép thông báo");

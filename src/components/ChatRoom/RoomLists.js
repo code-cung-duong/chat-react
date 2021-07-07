@@ -1,11 +1,13 @@
 import { LockTwoTone, UnlockTwoTone } from '@ant-design/icons';
 import { Button, Collapse, Tooltip, Typography } from 'antd';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ReactAudioPlayer from 'react-audio-player';
 import styled from 'styled-components';
 import { AppContext } from '../../context/AppProvider';
+import { AuthContext } from '../../context/AuthProvider';
+import { db } from '../../firebase/Config';
 
-const {Panel} = Collapse
+const { Panel } = Collapse
 
 const PanelStyled = styled(Panel)`
   
@@ -90,68 +92,86 @@ const CollapseStyled = styled(Collapse)`
 
 
 function RoomLists() {
-    const {rooms, setIsAddRoomVisible, setSelectedRoomId, selectedRoomId} = useContext(AppContext);
-    
+    const { rooms, setIsAddRoomVisible, setSelectedRoomId, selectedRoomId } = useContext(AppContext);
+    const { user: {
+        uid
+    } } = useContext(AuthContext);
+    // const [rooms2, setRooms2] = useState();
+    useEffect(() => {console.log(rooms);
+        const abc = db.collection('notifys').doc(uid).onSnapshot((snap) => {
+            snap.data().countNotify.forEach((item) => {
+                
+                const de = rooms.map((item2) => item2);
+                console.log(de);
+                return;
+            })
+
+            return abc;
+        })
+
+        return abc;
+    }, [])
+
     return (
 
         <CollapseStyled defaultActiveKey="0" ghost>
             <PanelStyled header="Nhóm của bạn" key="1">
                 {
-                rooms.length !== 0 ? <>{
-                    rooms.map((room) => (
-                        <LinkStyled key={
+                    rooms.length !== 0 ? <>{
+                        rooms.map((room) => (
+                            <LinkStyled key={
                                 room.id
                             }
-                            onClick={
-                                () => setSelectedRoomId(room.id)
-                            }
-                            style={
-                                room.id === selectedRoomId ? {
-                                    textShadow: 'rgb(222 222 222) 0px 0px 7px',
-                                    backgroundColor: '#f1f1f1',
-                                    transition: 'all 0.2s',
-                                    color: '#000',
-                                    // fontWeight: '500'
-                                } : {}
-                            }
-                            className="chu">
-                            {
-                            room.name
-                        }
-                            <> {
-                                Array.from(room.members).length === 1 ? <Tooltip title="Nhóm chỉ có mình bạn, hãy mời thêm bạn bè." placement="right">
-                                    <LockTwoTone style={
-                                        {
-                                            fontSize: '16pt',
-                                            float: 'right'
-                                        }
-                                    }/>
-                                </Tooltip> : <Tooltip title="Nhóm có cả bạn bè của bạn" placement="right">
-                                    <UnlockTwoTone style={
-                                        {
-                                            fontSize: '16pt',
-                                            float: 'right'
-                                        }
-                                    }/>
-                                </Tooltip>
-                            } </>
+                                onClick={
+                                    () => setSelectedRoomId(room.id)
+                                }
+                                style={
+                                    room.id === selectedRoomId ? {
+                                        textShadow: 'rgb(222 222 222) 0px 0px 7px',
+                                        backgroundColor: '#f1f1f1',
+                                        transition: 'all 0.2s',
+                                        color: '#000',
+                                        // fontWeight: '500'
+                                    } : {}
+                                }
+                                className="chu">
+                                {
+                                    room.name
+                                }
+                                <> {
+                                    Array.from(room.members).length === 1 ? <Tooltip title="Nhóm chỉ có mình bạn, hãy mời thêm bạn bè." placement="right">
+                                        <LockTwoTone style={
+                                            {
+                                                fontSize: '16pt',
+                                                float: 'right'
+                                            }
+                                        } />
+                                    </Tooltip> : <Tooltip title="Nhóm có cả bạn bè của bạn" placement="right">
+                                        <UnlockTwoTone style={
+                                            {
+                                                fontSize: '16pt',
+                                                float: 'right'
+                                            }
+                                        } />
+                                    </Tooltip>
+                                } </>
 
-                        </LinkStyled>
-                    ))
-                }</> : <p style={
-                    {
-                        color: 'gray',
-                        margin: '10px 0px 7px 30px'
-                    }
-                }>Bạn chưa tham gia nhóm nào</p>
-            }
+                            </LinkStyled>
+                        ))
+                    }</> : <p style={
+                        {
+                            color: 'gray',
+                            margin: '10px 0px 7px 30px'
+                        }
+                    }>Bạn chưa tham gia nhóm nào</p>
+                }
                 <Button type='text' className='add-room'
                     onClick={
                         () => setIsAddRoomVisible(true)
-                }>
+                    }>
                     Tạo nhóm
                 </Button>
-                <ReactAudioPlayer src="mess.mp3" className="audio"/>
+                <ReactAudioPlayer src="mess.mp3" className="audio" />
 
             </PanelStyled>
         </CollapseStyled>

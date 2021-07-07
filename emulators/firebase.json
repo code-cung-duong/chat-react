@@ -3,8 +3,8 @@
     "rules": "database.rules.json"
   },
   "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+    "rules": "y",
+    "indexes": "y"
   },
   "emulators": {
     "auth": {
@@ -15,7 +15,9 @@
     },
     "ui": {
       "enabled": true
+    },
+    "database": {
+      "port": null
     }
-    
   }
 }
